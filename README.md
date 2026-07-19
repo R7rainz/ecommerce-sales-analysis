@@ -1,5 +1,7 @@
 # E-Commerce Sales Analysis
 
+### ▶ [**View the live interactive dashboard**](https://r7rainz.github.io/ecommerce-sales-analysis/)
+
 End-to-end analysis of 15,000 e-commerce sales records: cleaning, SQL, business
 insight generation, and dashboards.
 
@@ -76,7 +78,7 @@ python src/07_build_dashboard.py      # interactive HTML dashboard
 | --- | --- |
 | Cleaned dataset file | `data/processed/ecommerce_sales_cleaned.csv` / `.xlsx` |
 | Excel / SQL analysis file | `outputs/ecommerce_analysis.xlsx`, `sql/02_analysis_queries.sql` |
-| Dashboard | `dashboard/index.html` (interactive) + Excel `KPI Dashboard` sheet |
+| Dashboard | **[Live dashboard](https://r7rainz.github.io/ecommerce-sales-analysis/)** · `dashboard/index.html` · Excel `KPI Dashboard` sheet |
 | Summary of insights | `docs/insights_summary.md` |
 
 **Step 1 — Data Cleaning.** Duplicate removal, missing-value handling, date and
