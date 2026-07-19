@@ -1,0 +1,59 @@
+{
+  "kpis": {
+    "total_sales": 49384840.0,
+    "total_profit": 7377771.09,
+    "total_orders": 15000,
+    "total_quantity": 45191,
+    "average_discount": 0.15010533333333334,
+    "unique_customers": 7294,
+    "average_order_value": 3292.3226666666665,
+    "overall_profit_margin": 0.1493934391606817,
+    "date_from": "2023-01-01",
+    "date_to": "2024-12-31"
+  },
+  "answers": {
+    "q1_highest_sales_state": {
+      "answer": "Rajasthan",
+      "total_sales": 7230100.0,
+      "share_of_sales": 0.1464,
+      "runner_up": "Karnataka",
+      "gap_vs_runner_up": 87145.0
+    },
+    "q2_most_profitable_category": {
+      "answer": "Electronics",
+      "total_profit": 1551194.98,
+      "profit_margin": 0.1516,
+      "highest_margin_category": "Electronics"
+    },
+    "q3_highest_revenue_products": {
+      "answer": "Tablet",
+      "total_sales": 2205091.0,
+      "top_10": [
+        "Tablet",
+        "Smartphone",
+        "Skin Cream",
+        "Jeans",
+        "Headphones",
+        "Vacuum Cleaner",
+        "Yoga Mat",
+        "Makeup Kit",
+        "Air Fryer",
+        "Face Wash"
+      ],
+      "top_10_share_of_sales": 0.4195
+    },
+    "q4_most_used_payment_method": {
+      "answer": "Cash on Delivery",
+      "orders": 3059,
+      "share_of_orders": 0.20393333333333333
+    },
+    "q5_monthly_sales_trend": {
+      "best_month": "2023-03",
+      "best_month_sales": 2236805.0,
+      "worst_month": "2023-02",
+      "worst_month_sales": 1726147.0,
+      "first_half_vs_second_half_change": -0.002446904292324125,
+      "mean_abs_mom_growth": 0.06583478260869566
+    }
+  }
+}

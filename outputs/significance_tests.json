@@ -1,0 +1,107 @@
+{
+  "State": {
+    "permutation": {
+      "observed_spread": 0.03935,
+      "null_median_spread": 0.04754,
+      "null_p95_spread": 0.07252,
+      "p_value": 0.71,
+      "significant": false
+    },
+    "bootstrap": {
+      "leader": "Rajasthan",
+      "runner_up": "Karnataka",
+      "observed_margin": 87145.0,
+      "margin_ci_low": -503025.5,
+      "margin_ci_high": 389646.57,
+      "margin_ci_excludes_zero": false,
+      "leader_retention_rate": 0.387
+    },
+    "verdict": "NOISE - ranking is not distinguishable from random variation"
+  },
+  "Product_Category": {
+    "permutation": {
+      "observed_spread": 0.05174,
+      "null_median_spread": 0.05506,
+      "null_p95_spread": 0.08185,
+      "p_value": 0.5815,
+      "significant": false
+    },
+    "bootstrap": {
+      "leader": "Electronics",
+      "runner_up": "Clothing",
+      "observed_margin": 381258.0,
+      "margin_ci_low": -333694.38,
+      "margin_ci_high": 742869.75,
+      "margin_ci_excludes_zero": false,
+      "leader_retention_rate": 0.7795
+    },
+    "verdict": "NOISE - ranking is not distinguishable from random variation"
+  },
+  "Payment_Mode": {
+    "permutation": {
+      "observed_spread": 0.06446,
+      "null_median_spread": 0.0486,
+      "null_p95_spread": 0.07428,
+      "p_value": 0.1485,
+      "significant": false
+    },
+    "bootstrap": {
+      "leader": "Cash on Delivery",
+      "runner_up": "Credit Card",
+      "observed_margin": 447456.0,
+      "margin_ci_low": -214673.7,
+      "margin_ci_high": 856709.25,
+      "margin_ci_excludes_zero": false,
+      "leader_retention_rate": 0.8645
+    },
+    "verdict": "NOISE - ranking is not distinguishable from random variation"
+  },
+  "City": {
+    "permutation": {
+      "observed_spread": 0.06136,
+      "null_median_spread": 0.06244,
+      "null_p95_spread": 0.09139,
+      "p_value": 0.525,
+      "significant": false
+    },
+    "bootstrap": {
+      "leader": "Lucknow",
+      "runner_up": "Mumbai",
+      "observed_margin": 94710.0,
+      "margin_ci_low": -519457.33,
+      "margin_ci_high": 420330.5,
+      "margin_ci_excludes_zero": false,
+      "leader_retention_rate": 0.4285
+    },
+    "verdict": "NOISE - ranking is not distinguishable from random variation"
+  },
+  "Product_Name": {
+    "permutation": {
+      "observed_spread": 0.22817,
+      "null_median_spread": 0.1824,
+      "null_p95_spread": 0.22798,
+      "p_value": 0.049,
+      "significant": true
+    },
+    "bootstrap": {
+      "leader": "Tablet",
+      "runner_up": "Smartphone",
+      "observed_margin": 57013.0,
+      "margin_ci_low": -276535.62,
+      "margin_ci_high": 207826.65,
+      "margin_ci_excludes_zero": false,
+      "leader_retention_rate": 0.4215
+    },
+    "verdict": "NOISE - ranking is not distinguishable from random variation"
+  },
+  "Monthly_Trend": {
+    "months": 24,
+    "raw_monthly_cv": 0.0535,
+    "per_day_cv": 0.039,
+    "per_day_slope": -33.26,
+    "trend_r_squared": 0.008,
+    "peak_month": "2023-03",
+    "trough_month": "2023-06",
+    "peak_vs_trough_ratio": 1.1806
+  }
+}
