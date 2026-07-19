@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Excel lock files
+~$*.xlsx
+
+# Generated SQLite database (rebuild with: sqlite3 outputs/ecommerce.db < sql/schema.sql)
+*.db
