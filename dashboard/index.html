@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E-Commerce Sales Dashboard</title>
+<style>
+/* Palette from the validated reference instance. Categorical slots 1-5 and the
+   surfaces below were checked with the data-viz validator in BOTH modes; the
+   dark steps are chosen for the dark surface, never an automatic flip. */
+:root {
+  color-scheme: light;
+  --surface-0:#f4f4f1; --surface-1:#fcfcfb; --surface-2:#eceae5;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#8a8880;
+  --rule:#e6e5e1; --grid:#e6e5e1;
+  --s1:#2a78d6; --s2:#008300; --s3:#e87ba4; --s4:#eda100; --s5:#1baf7a;
+  --deemph:#c9c8c2; --accent-soft:rgba(42,120,214,.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-0:#111110; --surface-1:#1a1a19; --surface-2:#232322;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e85;
+    --rule:#333331; --grid:#2e2e2c;
+    --s1:#3987e5; --s2:#008300; --s3:#d55181; --s4:#c98500; --s5:#199e70;
+    --deemph:#4a4a47; --accent-soft:rgba(57,135,229,.16);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0:#111110; --surface-1:#1a1a19; --surface-2:#232322;
+  --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e85;
+  --rule:#333331; --grid:#2e2e2c;
+  --s1:#3987e5; --s2:#008300; --s3:#d55181; --s4:#c98500; --s5:#199e70;
+  --deemph:#4a4a47; --accent-soft:rgba(57,135,229,.16);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--surface-0); color:var(--text-primary);
+  font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1220px;margin:0 auto;padding:32px 20px 72px}
+
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;letter-spacing:-.02em}
+.sub{color:var(--text-secondary);font-size:14px;margin:0}
+.theme-btn{
+  background:var(--surface-1);color:var(--text-secondary);border:1px solid var(--rule);
+  border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit;
+}
+.theme-btn:hover{color:var(--text-primary);border-color:var(--text-muted)}
+
+.banner{
+  margin:24px 0 8px;padding:16px 18px;border-radius:10px;
+  background:var(--accent-soft);border:1px solid var(--rule);
+  border-left:3px solid var(--s1);
+}
+.banner strong{display:block;margin-bottom:4px;font-size:14px}
+.banner p{margin:0;font-size:13.5px;color:var(--text-secondary)}
+
+/* 6 tiles: fits one row on desktop, halves on tablet, stacks on phone -
+   never leaves a single orphan tile on its own row. */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin:24px 0 8px}
+@media (max-width:1080px){ .kpis{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+.kpi{background:var(--surface-1);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px}
+.kpi .value{font-size:23px;font-weight:650;letter-spacing:-.025em;line-height:1.15}
+.kpi .note{font-size:12px;color:var(--text-secondary);margin-top:4px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(470px,1fr));gap:18px;margin-top:18px}
+.card{background:var(--surface-1);border:1px solid var(--rule);border-radius:12px;padding:20px 20px 14px;min-width:0}
+.card.full{grid-column:1/-1}
+.card h2{font-size:15.5px;margin:0 0 4px;letter-spacing:-.01em}
+.card .cap{font-size:12.5px;color:var(--text-secondary);margin:0 0 14px}
+.chart{width:100%;overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+
+.toggle{
+  background:none;border:1px solid var(--rule);color:var(--text-muted);
+  border-radius:6px;padding:4px 10px;font-size:11.5px;cursor:pointer;
+  font-family:inherit;margin-top:10px;
+}
+.toggle:hover{color:var(--text-primary)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--text-muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.hidden{display:none}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+.swatch{width:11px;height:11px;border-radius:3px;flex:none}
+
+.tip{
+  position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:var(--surface-1);border:1px solid var(--rule);border-radius:8px;
+  padding:8px 11px;font-size:12.5px;box-shadow:0 6px 22px rgba(0,0,0,.16);
+  z-index:50;max-width:260px;color:var(--text-primary);
+}
+.tip .t-title{font-weight:650;margin-bottom:3px}
+.tip .t-row{color:var(--text-secondary);white-space:nowrap}
+
+footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--text-muted)}
+@media (max-width:560px){ .grid{grid-template-columns:1fr} h1{font-size:22px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>E-Commerce Sales Dashboard</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">Toggle theme</button>
+  </header>
+
+  <div class="banner">
+    <strong>Read the confidence column before acting on any ranking.</strong>
+    <p id="bannerText"></p>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+  <section class="grid" id="grid"></section>
+
+  <footer>
+    Built from 15,000 cleaned order records.
+    Charts use a colourblind-validated palette; every ranking is accompanied by
+    the statistical test that tells you whether it means anything.
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = {"kpis":{"total_sales":49384840.0,"total_profit":7377771.09,"total_orders":15000,"total_quantity":45191,"average_discount":0.15010533333333334,"unique_customers":7294,"average_order_value":3292.3226666666665,"overall_profit_margin":0.1493934391606817,"date_from":"2023-01-01","date_to":"2024-12-31"},"answers":{"q1_highest_sales_state":{"answer":"Rajasthan","total_sales":7230100.0,"share_of_sales":0.1464,"runner_up":"Karnataka","gap_vs_runner_up":87145.0},"q2_most_profitable_category":{"answer":"Electronics","total_profit":1551194.98,"profit_margin":0.1516,"highest_margin_category":"Electronics"},"q3_highest_revenue_products":{"answer":"Tablet","total_sales":2205091.0,"top_10":["Tablet","Smartphone","Skin Cream","Jeans","Headphones","Vacuum Cleaner","Yoga Mat","Makeup Kit","Air Fryer","Face Wash"],"top_10_share_of_sales":0.4195},"q4_most_used_payment_method":{"answer":"Cash on Delivery","orders":3059,"share_of_orders":0.20393333333333333},"q5_monthly_sales_trend":{"best_month":"2023-03","best_month_sales":2236805.0,"worst_month":"2023-02","worst_month_sales":1726147.0,"first_half_vs_second_half_change":-0.002446904292324125,"mean_abs_mom_growth":0.06583478260869566}},"state":[{"State":"Rajasthan","Total_Sales":7230100.0,"Total_Profit":1087893.57,"Total_Orders":2155,"Total_Quantity":6581,"Avg_Discount":0.1514,"Profit_Margin":0.1505,"Sales_Share":0.1464},{"State":"Karnataka","Total_Sales":7142955.0,"Total_Profit":1054993.47,"Total_Orders":2156,"Total_Quantity":6608,"Avg_Discount":0.15,"Profit_Margin":0.1477,"Sales_Share":0.1446},{"State":"Gujarat","Total_Sales":7141494.0,"Total_Profit":1076004.92,"Total_Orders":2149,"Total_Quantity":6545,"Avg_Discount":0.1469,"Profit_Margin":0.1507,"Sales_Share":0.1446},{"State":"Tamil Nadu","Total_Sales":6982897.0,"Total_Profit":1053602.5,"Total_Orders":2105,"Total_Quantity":6329,"Avg_Discount":0.1531,"Profit_Margin":0.1509,"Sales_Share":0.1414},{"State":"Delhi","Total_Sales":6969026.0,"Total_Profit":1051711.03,"Total_Orders":2129,"Total_Quantity":6397,"Avg_Discount":0.1508,"Profit_Margin":0.1509,"Sales_Share":0.1411},{"State":"Uttar Pradesh","Total_Sales":6965893.0,"Total_Profit":1044119.45,"Total_Orders":2145,"Total_Quantity":6400,"Avg_Discount":0.1503,"Profit_Margin":0.1499,"Sales_Share":0.1411},{"State":"Maharashtra","Total_Sales":6952475.0,"Total_Profit":1009446.15,"Total_Orders":2161,"Total_Quantity":6331,"Avg_Discount":0.1484,"Profit_Margin":0.1452,"Sales_Share":0.1408}],"category":[{"Product_Category":"Electronics","Total_Sales":10234029.0,"Total_Profit":1551194.98,"Total_Orders":3078,"Total_Quantity":9187,"Avg_Discount":0.1498,"Profit_Margin":0.1516,"Sales_Share":0.2072},{"Product_Category":"Clothing","Total_Sales":9852771.0,"Total_Profit":1468307.01,"Total_Orders":2925,"Total_Quantity":8950,"Avg_Discount":0.1513,"Profit_Margin":0.149,"Sales_Share":0.1995},{"Product_Category":"Home & Kitchen","Total_Sales":9813312.0,"Total_Profit":1446453.17,"Total_Orders":3016,"Total_Quantity":9049,"Avg_Discount":0.1487,"Profit_Margin":0.1474,"Sales_Share":0.1987},{"Product_Category":"Beauty","Total_Sales":9761759.0,"Total_Profit":1459496.16,"Total_Orders":2974,"Total_Quantity":8975,"Avg_Discount":0.1493,"Profit_Margin":0.1495,"Sales_Share":0.1977},{"Product_Category":"Sports","Total_Sales":9722969.0,"Total_Profit":1452319.77,"Total_Orders":3007,"Total_Quantity":9030,"Avg_Discount":0.1514,"Profit_Margin":0.1494,"Sales_Share":0.1969}],"profit_category":[{"Product_Category":"Electronics","Total_Sales":10234029.0,"Total_Profit":1551194.98,"Total_Orders":3078,"Total_Quantity":9187,"Avg_Discount":0.1498,"Profit_Margin":0.1516,"Sales_Share":0.2072},{"Product_Category":"Clothing","Total_Sales":9852771.0,"Total_Profit":1468307.01,"Total_Orders":2925,"Total_Quantity":8950,"Avg_Discount":0.1513,"Profit_Margin":0.149,"Sales_Share":0.1995},{"Product_Category":"Beauty","Total_Sales":9761759.0,"Total_Profit":1459496.16,"Total_Orders":2974,"Total_Quantity":8975,"Avg_Discount":0.1493,"Profit_Margin":0.1495,"Sales_Share":0.1977},{"Product_Category":"Sports","Total_Sales":9722969.0,"Total_Profit":1452319.77,"Total_Orders":3007,"Total_Quantity":9030,"Avg_Discount":0.1514,"Profit_Margin":0.1494,"Sales_Share":0.1969},{"Product_Category":"Home & Kitchen","Total_Sales":9813312.0,"Total_Profit":1446453.17,"Total_Orders":3016,"Total_Quantity":9049,"Avg_Discount":0.1487,"Profit_Margin":0.1474,"Sales_Share":0.1987}],"products":[{"Product_Name":"Tablet","Total_Sales":2205091.0,"Total_Profit":335395.75,"Total_Orders":629,"Total_Quantity":1944,"Avg_Discount":0.1501,"Profit_Margin":0.1521,"Sales_Share":0.0447},{"Product_Name":"Smartphone","Total_Sales":2148078.0,"Total_Profit":326400.25,"Total_Orders":627,"Total_Quantity":1889,"Avg_Discount":0.1517,"Profit_Margin":0.1519,"Sales_Share":0.0435},{"Product_Name":"Skin Cream","Total_Sales":2089872.0,"Total_Profit":315536.85,"Total_Orders":617,"Total_Quantity":1850,"Avg_Discount":0.1466,"Profit_Margin":0.151,"Sales_Share":0.0423},{"Product_Name":"Jeans","Total_Sales":2081730.0,"Total_Profit":312149.74,"Total_Orders":583,"Total_Quantity":1856,"Avg_Discount":0.1537,"Profit_Margin":0.1499,"Sales_Share":0.0422},{"Product_Name":"Headphones","Total_Sales":2063692.0,"Total_Profit":319836.25,"Total_Orders":639,"Total_Quantity":1843,"Avg_Discount":0.1479,"Profit_Margin":0.155,"Sales_Share":0.0418},{"Product_Name":"Vacuum Cleaner","Total_Sales":2052444.0,"Total_Profit":307864.68,"Total_Orders":621,"Total_Quantity":1859,"Avg_Discount":0.1493,"Profit_Margin":0.15,"Sales_Share":0.0416},{"Product_Name":"Yoga Mat","Total_Sales":2029162.0,"Total_Profit":303022.76,"Total_Orders":622,"Total_Quantity":1886,"Avg_Discount":0.1491,"Profit_Margin":0.1493,"Sales_Share":0.0411},{"Product_Name":"Makeup Kit","Total_Sales":2023811.0,"Total_Profit":303018.57,"Total_Orders":625,"Total_Quantity":1879,"Avg_Discount":0.1544,"Profit_Margin":0.1497,"Sales_Share":0.041},{"Product_Name":"Air Fryer","Total_Sales":2012414.0,"Total_Profit":297220.22,"Total_Orders":611,"Total_Quantity":1827,"Avg_Discount":0.1503,"Profit_Margin":0.1477,"Sales_Share":0.0407},{"Product_Name":"Face Wash","Total_Sales":2004712.0,"Total_Profit":296784.53,"Total_Orders":603,"Total_Quantity":1851,"Avg_Discount":0.1484,"Profit_Margin":0.148,"Sales_Share":0.0406}],"payment":[{"Payment_Mode":"Cash on Delivery","Total_Sales":10332496.0,"Total_Profit":1545940.68,"Total_Orders":3059,"Total_Quantity":9322,"Avg_Discount":0.1512,"Profit_Margin":0.1496,"Sales_Share":0.2092},{"Payment_Mode":"Credit Card","Total_Sales":9885040.0,"Total_Profit":1481544.02,"Total_Orders":3024,"Total_Quantity":9048,"Avg_Discount":0.1501,"Profit_Margin":0.1499,"Sales_Share":0.2002},{"Payment_Mode":"UPI","Total_Sales":9775024.0,"Total_Profit":1457504.4,"Total_Orders":2937,"Total_Quantity":8939,"Avg_Discount":0.148,"Profit_Margin":0.1491,"Sales_Share":0.1979},{"Payment_Mode":"Debit Card","Total_Sales":9696453.0,"Total_Profit":1442168.84,"Total_Orders":3020,"Total_Quantity":9011,"Avg_Discount":0.1509,"Profit_Margin":0.1487,"Sales_Share":0.1963},{"Payment_Mode":"Net Banking","Total_Sales":9695827.0,"Total_Profit":1450613.15,"Total_Orders":2960,"Total_Quantity":8871,"Avg_Discount":0.1504,"Profit_Margin":0.1496,"Sales_Share":0.1963}],"trend":[{"Order_Month":"2023-01","Total_Sales":2139867.0,"Total_Profit":313601.76,"Total_Orders":667,"Total_Quantity":1988,"MoM_Growth":null},{"Order_Month":"2023-02","Total_Sales":1726147.0,"Total_Profit":268380.27,"Total_Orders":510,"Total_Quantity":1541,"MoM_Growth":-0.1933},{"Order_Month":"2023-03","Total_Sales":2236805.0,"Total_Profit":337696.73,"Total_Orders":674,"Total_Quantity":2032,"MoM_Growth":0.2958},{"Order_Month":"2023-04","Total_Sales":2053313.0,"Total_Profit":317437.48,"Total_Orders":599,"Total_Quantity":1853,"MoM_Growth":-0.082},{"Order_Month":"2023-05","Total_Sales":2097662.0,"Total_Profit":316681.83,"Total_Orders":613,"Total_Quantity":1806,"MoM_Growth":0.0216},{"Order_Month":"2023-06","Total_Sales":1833534.0,"Total_Profit":275847.62,"Total_Orders":580,"Total_Quantity":1721,"MoM_Growth":-0.1259},{"Order_Month":"2023-07","Total_Sales":2179755.0,"Total_Profit":329552.27,"Total_Orders":667,"Total_Quantity":2013,"MoM_Growth":0.1888},{"Order_Month":"2023-08","Total_Sales":2128516.0,"Total_Profit":312916.23,"Total_Orders":646,"Total_Quantity":1955,"MoM_Growth":-0.0235},{"Order_Month":"2023-09","Total_Sales":2054990.0,"Total_Profit":318581.91,"Total_Orders":623,"Total_Quantity":1887,"MoM_Growth":-0.0345},{"Order_Month":"2023-10","Total_Sales":2052037.0,"Total_Profit":301732.62,"Total_Orders":638,"Total_Quantity":1960,"MoM_Growth":-0.0014},{"Order_Month":"2023-11","Total_Sales":2104371.0,"Total_Profit":307407.1,"Total_Orders":635,"Total_Quantity":1876,"MoM_Growth":0.0255},{"Order_Month":"2023-12","Total_Sales":2115670.0,"Total_Profit":311451.64,"Total_Orders":618,"Total_Quantity":1888,"MoM_Growth":0.0054},{"Order_Month":"2024-01","Total_Sales":2088196.0,"Total_Profit":306555.59,"Total_Orders":664,"Total_Quantity":1909,"MoM_Growth":-0.013},{"Order_Month":"2024-02","Total_Sales":1987797.0,"Total_Profit":292993.59,"Total_Orders":581,"Total_Quantity":1812,"MoM_Growth":-0.0481},{"Order_Month":"2024-03","Total_Sales":2103735.0,"Total_Profit":315645.41,"Total_Orders":623,"Total_Quantity":1894,"MoM_Growth":0.0583},{"Order_Month":"2024-04","Total_Sales":2057301.0,"Total_Profit":304062.3,"Total_Orders":635,"Total_Quantity":1874,"MoM_Growth":-0.0221},{"Order_Month":"2024-05","Total_Sales":2167151.0,"Total_Profit":328369.08,"Total_Orders":667,"Total_Quantity":1974,"MoM_Growth":0.0534},{"Order_Month":"2024-06","Total_Sales":1973144.0,"Total_Profit":287956.31,"Total_Orders":608,"Total_Quantity":1817,"MoM_Growth":-0.0895},{"Order_Month":"2024-07","Total_Sales":2173589.0,"Total_Profit":321321.3,"Total_Orders":663,"Total_Quantity":2006,"MoM_Growth":0.1016},{"Order_Month":"2024-08","Total_Sales":2059091.0,"Total_Profit":302873.44,"Total_Orders":605,"Total_Quantity":1890,"MoM_Growth":-0.0527},{"Order_Month":"2024-09","Total_Sales":2046771.0,"Total_Profit":311054.74,"Total_Orders":638,"Total_Quantity":1931,"MoM_Growth":-0.006},{"Order_Month":"2024-10","Total_Sales":1968230.0,"Total_Profit":289810.38,"Total_Orders":613,"Total_Quantity":1878,"MoM_Growth":-0.0384},{"Order_Month":"2024-11","Total_Sales":2002566.0,"Total_Profit":297975.33,"Total_Orders":613,"Total_Quantity":1820,"MoM_Growth":0.0174},{"Order_Month":"2024-12","Total_Sales":2034602.0,"Total_Profit":307866.16,"Total_Orders":620,"Total_Quantity":1866,"MoM_Growth":0.016}],"significance":[{"Dimension":"State","Leader":"Rajasthan","Runner_Up":"Karnataka","Observed_Margin":87145.0,"Margin_CI_Low":-503025.5,"Margin_CI_High":389646.57,"Leader_Retention_Rate":0.387,"Permutation_P_Value":0.71,"Significant_At_5pct":false,"Verdict":"NOISE"},{"Dimension":"Product_Category","Leader":"Electronics","Runner_Up":"Clothing","Observed_Margin":381258.0,"Margin_CI_Low":-333694.38,"Margin_CI_High":742869.75,"Leader_Retention_Rate":0.7795,"Permutation_P_Value":0.5815,"Significant_At_5pct":false,"Verdict":"NOISE"},{"Dimension":"Payment_Mode","Leader":"Cash on Delivery","Runner_Up":"Credit Card","Observed_Margin":447456.0,"Margin_CI_Low":-214673.7,"Margin_CI_High":856709.25,"Leader_Retention_Rate":0.8645,"Permutation_P_Value":0.1485,"Significant_At_5pct":false,"Verdict":"NOISE"},{"Dimension":"City","Leader":"Lucknow","Runner_Up":"Mumbai","Observed_Margin":94710.0,"Margin_CI_Low":-519457.33,"Margin_CI_High":420330.5,"Leader_Retention_Rate":0.4285,"Permutation_P_Value":0.525,"Significant_At_5pct":false,"Verdict":"NOISE"},{"Dimension":"Product_Name","Leader":"Tablet","Runner_Up":"Smartphone","Observed_Margin":57013.0,"Margin_CI_Low":-276535.62,"Margin_CI_High":207826.65,"Leader_Retention_Rate":0.4215,"Permutation_P_Value":0.049,"Significant_At_5pct":true,"Verdict":"NOISE"}]};
+
+/* ---------- formatting ---------- */
+const money = v => {
+  const a = Math.abs(v);
+  if (a >= 1e7) return 'Rs ' + (v/1e7).toFixed(2) + ' Cr';
+  if (a >= 1e5) return 'Rs ' + (v/1e5).toFixed(2) + ' L';
+  if (a >= 1e3) return 'Rs ' + (v/1e3).toFixed(1) + 'K';
+  return 'Rs ' + v.toFixed(0);
+};
+const num = v => v.toLocaleString('en-IN');
+const pct = v => (v*100).toFixed(1) + '%';
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById('tip');
+function showTip(e, title, rows){
+  tip.innerHTML = '<div class="t-title">'+title+'</div>' +
+    rows.map(r => '<div class="t-row">'+r+'</div>').join('');
+  tip.style.opacity = 1;
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + w > innerWidth - 8)  x = e.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = e.clientY - h - pad;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const hideTip = () => tip.style.opacity = 0;
+
+/* ---------- svg helpers ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+function svgRoot(w, h){
+  const s = el('svg', {viewBox:`0 0 ${w} ${h}`, width:'100%', role:'img'});
+  s.style.minWidth = Math.min(w, 420) + 'px';
+  return s;
+}
+function yGrid(svg, scale, x0, x1, ticks, fmt){
+  ticks.forEach(t => {
+    svg.appendChild(el('line', {x1:x0, x2:x1, y1:scale(t), y2:scale(t),
+      stroke:css('--grid'), 'stroke-width':1}));
+    const lb = el('text', {x:x0-9, y:scale(t)+4, 'text-anchor':'end',
+      fill:css('--text-muted'), 'font-size':11});
+    lb.textContent = fmt(t);
+    svg.appendChild(lb);
+  });
+}
+function niceTicks(max, count){
+  const raw = max / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(m=>m*mag).find(s => s >= raw) || mag*10;
+  const out = [];
+  for (let v = 0; v <= max*1.0001; v += step) out.push(v);
+  return out;
+}
+
+/* ---------- chart: vertical bars (nominal -> one hue) ---------- */
+function barChart(host, rows, keyF, valF, fmtV, tipRows){
+  const W=620, H=300, L=76, R=18, T=14, B=54;
+  const svg = svgRoot(W,H);
+  const max = Math.max(...rows.map(valF));
+  const y = v => T + (H-T-B) * (1 - v/(max*1.14));
+  yGrid(svg, y, L, W-R, niceTicks(max*1.14, 4), fmtV);
+
+  const bw = (W-L-R)/rows.length;
+  rows.forEach((r,i) => {
+    const v = valF(r), h = y(0)-y(v);
+    const x = L + i*bw + bw*0.19, w = bw*0.62;
+    // 4px rounded data-end, anchored square to the baseline.
+    const rect = el('path', {d:
+      `M${x},${y(0)} L${x},${y(v)+4} Q${x},${y(v)} ${x+4},${y(v)}
+       L${x+w-4},${y(v)} Q${x+w},${y(v)} ${x+w},${y(v)+4} L${x+w},${y(0)} Z`,
+      fill:css('--s1')});
+    rect.style.cursor='pointer';
+    rect.addEventListener('mousemove', e => showTip(e, keyF(r), tipRows(r)));
+    rect.addEventListener('mouseleave', hideTip);
+    svg.appendChild(rect);
+
+    const val = el('text', {x:x+w/2, y:y(v)-7, 'text-anchor':'middle',
+      fill:css('--text-secondary'), 'font-size':11});
+    val.textContent = fmtV(v);
+    svg.appendChild(val);
+
+    const lab = el('text', {x:x+w/2, y:H-B+20, 'text-anchor':'middle',
+      fill:css('--text-secondary'), 'font-size':11});
+    lab.textContent = keyF(r);
+    svg.appendChild(lab);
+  });
+  svg.appendChild(el('line',{x1:L,x2:W-R,y1:y(0),y2:y(0),
+    stroke:css('--rule'),'stroke-width':1}));
+  host.appendChild(svg);
+}
+
+/* ---------- chart: horizontal bars ---------- */
+function barChartH(host, rows, keyF, valF, fmtV, tipRows){
+  const W=620, rowH=27, L=118, R=76, T=8;
+  const H = T + rows.length*rowH + 16;
+  const svg = svgRoot(W,H);
+  const max = Math.max(...rows.map(valF));
+  const x = v => L + (W-L-R) * (v/(max*1.05));
+
+  rows.forEach((r,i) => {
+    const v = valF(r), yy = T + i*rowH, bh = rowH*0.64;
+    const bar = el('path', {d:
+      `M${L},${yy} L${x(v)-4},${yy} Q${x(v)},${yy} ${x(v)},${yy+4}
+       L${x(v)},${yy+bh-4} Q${x(v)},${yy+bh} ${x(v)-4},${yy+bh} L${L},${yy+bh} Z`,
+      fill:css('--s1')});
+    bar.style.cursor='pointer';
+    bar.addEventListener('mousemove', e => showTip(e, keyF(r), tipRows(r)));
+    bar.addEventListener('mouseleave', hideTip);
+    svg.appendChild(bar);
+
+    const lab = el('text', {x:L-10, y:yy+bh/2+4, 'text-anchor':'end',
+      fill:css('--text-secondary'), 'font-size':11.5});
+    lab.textContent = keyF(r);
+    svg.appendChild(lab);
+
+    const val = el('text', {x:x(v)+8, y:yy+bh/2+4,
+      fill:css('--text-secondary'), 'font-size':11});
+    val.textContent = fmtV(v);
+    svg.appendChild(val);
+  });
+  host.appendChild(svg);
+}
+
+/* ---------- chart: line with crosshair ---------- */
+function lineChart(host, rows){
+  const W=1140, H=330, L=84, R=26, T=16, B=62;
+  const svg = svgRoot(W,H);
+  const vals = rows.map(r=>r.Total_Sales);
+  const max = Math.max(...vals), mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const y = v => T + (H-T-B) * (1 - v/(max*1.18));   // zero-baseline, always
+  const x = i => L + (W-L-R) * (i/(rows.length-1));
+
+  yGrid(svg, y, L, W-R, niceTicks(max*1.18, 4), money);
+
+  // +/-5% reference band: makes "flat" visible instead of merely asserted.
+  svg.appendChild(el('rect', {x:L, y:y(mean*1.05), width:W-L-R,
+    height:y(mean*0.95)-y(mean*1.05), fill:css('--s1'), opacity:.10}));
+  svg.appendChild(el('line', {x1:L, x2:W-R, y1:y(mean), y2:y(mean),
+    stroke:css('--text-muted'), 'stroke-width':1.5, 'stroke-dasharray':'5 4'}));
+  const bl = el('text', {x:W-R, y:y(mean*1.05)-6, 'text-anchor':'end',
+    fill:css('--text-muted'), 'font-size':11});
+  bl.textContent = 'mean +/-5%';
+  svg.appendChild(bl);
+
+  const d = rows.map((r,i)=>`${i?'L':'M'}${x(i)},${y(r.Total_Sales)}`).join(' ');
+  svg.appendChild(el('path', {d, fill:'none', stroke:css('--s1'),
+    'stroke-width':2, 'stroke-linejoin':'round'}));
+
+  rows.forEach((r,i) => {
+    svg.appendChild(el('circle', {cx:x(i), cy:y(r.Total_Sales), r:4.5,
+      fill:css('--s1'), stroke:css('--surface-1'), 'stroke-width':1.5}));
+    if (i % 2 === 0){
+      const lb = el('text', {x:x(i), y:H-B+22, 'text-anchor':'end',
+        fill:css('--text-muted'), 'font-size':10.5,
+        transform:`rotate(-45 ${x(i)} ${H-B+22})`});
+      lb.textContent = r.Order_Month;
+      svg.appendChild(lb);
+    }
+  });
+
+  // Crosshair layer - hit target spans the full plot height, not just the dot.
+  const cross = el('line', {x1:0,x2:0,y1:T,y2:y(0), stroke:css('--text-muted'),
+    'stroke-width':1, 'stroke-dasharray':'3 3', opacity:0});
+  svg.appendChild(cross);
+  const band = el('rect', {x:L, y:T, width:W-L-R, height:y(0)-T,
+    fill:'transparent'});
+  band.style.cursor='crosshair';
+  band.addEventListener('mousemove', e => {
+    const box = svg.getBoundingClientRect();
+    const rel = (e.clientX-box.left)/box.width*W;
+    let i = Math.round((rel-L)/((W-L-R)/(rows.length-1)));
+    i = Math.max(0, Math.min(rows.length-1, i));
+    const r = rows[i];
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i));
+    cross.setAttribute('opacity', 1);
+    const g = r.MoM_Growth;
+    showTip(e, r.Order_Month, [
+      'Sales: ' + money(r.Total_Sales),
+      'Profit: ' + money(r.Total_Profit),
+      'Orders: ' + num(r.Total_Orders),
+      (g===null||g===undefined||isNaN(g)) ? 'MoM: n/a' : 'MoM: ' + pct(g),
+    ]);
+  });
+  band.addEventListener('mouseleave', () => { cross.setAttribute('opacity',0); hideTip(); });
+  svg.appendChild(band);
+  svg.appendChild(el('line',{x1:L,x2:W-R,y1:y(0),y2:y(0),
+    stroke:css('--rule'),'stroke-width':1}));
+  host.appendChild(svg);
+}
+
+/* ---------- chart: significance dot plot ---------- */
+function sigChart(host, rows){
+  const W=1140, rowH=54, L=142, R=40, T=18;
+  const H = T + rows.length*rowH + 44;
+  const svg = svgRoot(W,H);
+  const lo = Math.min(...rows.map(r=>r.Margin_CI_Low));
+  const hi = Math.max(...rows.map(r=>r.Margin_CI_High));
+  const pad = (hi-lo)*0.06;
+  const x = v => L + (W-L-R) * ((v-(lo-pad))/((hi+pad)-(lo-pad)));
+
+  svg.appendChild(el('line', {x1:x(0), x2:x(0), y1:T-4, y2:T+rows.length*rowH,
+    stroke:css('--text-primary'), 'stroke-width':1.5}));
+  const zl = el('text', {x:x(0), y:H-16, 'text-anchor':'middle',
+    fill:css('--text-muted'), 'font-size':11});
+  zl.textContent = 'zero = a tie';
+  svg.appendChild(zl);
+
+  rows.forEach((r,i) => {
+    const yy = T + i*rowH + rowH*0.55;
+    svg.appendChild(el('line', {x1:x(r.Margin_CI_Low), x2:x(r.Margin_CI_High),
+      y1:yy, y2:yy, stroke:css('--deemph'), 'stroke-width':7,
+      'stroke-linecap':'round'}));
+    const dot = el('circle', {cx:x(r.Observed_Margin), cy:yy, r:6,
+      fill:css('--s1'), stroke:css('--surface-1'), 'stroke-width':1.5});
+    dot.style.cursor='pointer';
+    dot.addEventListener('mousemove', e => showTip(e,
+      r.Dimension.replace(/_/g,' '), [
+        'Leader: ' + r.Leader,
+        'Runner-up: ' + r.Runner_Up,
+        'Margin: ' + money(r.Observed_Margin),
+        '95% CI: ' + money(r.Margin_CI_Low) + ' to ' + money(r.Margin_CI_High),
+        'Holds top in ' + pct(r.Leader_Retention_Rate) + ' of resamples',
+        'Verdict: ' + r.Verdict,
+      ]));
+    dot.addEventListener('mouseleave', hideTip);
+    svg.appendChild(dot);
+
+    const lab = el('text', {x:L-12, y:yy+4, 'text-anchor':'end',
+      fill:css('--text-primary'), 'font-size':12.5});
+    lab.textContent = r.Dimension.replace(/_/g,' ');
+    svg.appendChild(lab);
+
+    // Halo the label: the zero rule runs behind this band and would
+    // otherwise strike the text through.
+    const note = el('text', {x:x(r.Margin_CI_Low), y:yy-14,
+      fill:css('--text-secondary'), 'font-size':11,
+      stroke:css('--surface-1'), 'stroke-width':3.5,
+      'paint-order':'stroke fill', 'stroke-linejoin':'round'});
+    note.textContent = r.Leader + ' holds top in ' +
+      pct(r.Leader_Retention_Rate) + ' of resamples';
+    svg.appendChild(note);
+  });
+  host.appendChild(svg);
+}
+
+/* ---------- card scaffolding ---------- */
+function card(title, caption, full, render, tableCols, tableRows){
+  const c = document.createElement('div');
+  c.className = 'card' + (full ? ' full' : '');
+  c.innerHTML = '<h2>'+title+'</h2><p class="cap">'+caption+'</p>';
+  const chart = document.createElement('div');
+  chart.className = 'chart';
+  c.appendChild(chart);
+  render(chart);
+
+  if (tableCols){
+    const btn = document.createElement('button');
+    btn.className = 'toggle'; btn.type = 'button';
+    btn.textContent = 'Show data table';
+    const tbl = document.createElement('div');
+    tbl.className = 'hidden';
+    tbl.innerHTML = '<table><thead><tr>' +
+      tableCols.map(h=>'<th>'+h[0]+'</th>').join('') + '</tr></thead><tbody>' +
+      tableRows.map(r=>'<tr>' + tableCols.map(h=>'<td>'+h[1](r)+'</td>').join('') +
+        '</tr>').join('') + '</tbody></table>';
+    btn.onclick = () => {
+      const open = !tbl.classList.contains('hidden');
+      tbl.classList.toggle('hidden');
+      btn.textContent = open ? 'Show data table' : 'Hide data table';
+    };
+    c.appendChild(btn); c.appendChild(tbl);
+  }
+  document.getElementById('grid').appendChild(c);
+}
+
+/* ---------- render ---------- */
+function render(){
+  document.getElementById('grid').innerHTML = '';
+  const k = DATA.kpis, a = DATA.answers;
+
+  document.getElementById('sub').textContent =
+    num(k.total_orders) + ' orders  |  ' + k.date_from + ' to ' + k.date_to +
+    '  |  ' + num(k.unique_customers) + ' customers';
+  document.getElementById('bannerText').textContent =
+    'All five headline rankings sit within random variation. Bootstrap testing ' +
+    'puts the top state at only ' + pct(DATA.significance.find(s=>s.Dimension==='State').Leader_Retention_Rate) +
+    ' likelihood of actually being first, and the 24-month trend fits a flat ' +
+    'line (R2 = 0.008). The figures below are accurate; the rankings between ' +
+    'them are not decision-grade.';
+
+  const kpis = [
+    ['Total Sales', money(k.total_sales), num(k.total_orders)+' orders'],
+    ['Total Profit', money(k.total_profit), pct(k.overall_profit_margin)+' margin'],
+    ['Total Orders', num(k.total_orders), num(k.unique_customers)+' customers'],
+    ['Quantity Sold', num(k.total_quantity), (k.total_quantity/k.total_orders).toFixed(2)+' per order'],
+    ['Avg Discount', pct(k.average_discount), 'range 0-30%'],
+    ['Avg Order Value', money(k.average_order_value), 'per order'],
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(([l,v,n]) =>
+    '<div class="kpi"><div class="label">'+l+'</div><div class="value">'+v+
+    '</div><div class="note">'+n+'</div></div>').join('');
+
+  const salesCols = [
+    ['Name', r=>r.k], ['Sales', r=>money(r.Total_Sales)],
+    ['Profit', r=>money(r.Total_Profit)], ['Orders', r=>num(r.Total_Orders)],
+    ['Margin', r=>pct(r.Profit_Margin)], ['Share', r=>pct(r.Sales_Share)],
+  ];
+  const withKey = (rows, key) => rows.map(r => ({...r, k:r[key]}));
+
+  const tipFor = r => ['Sales: '+money(r.Total_Sales),
+    'Profit: '+money(r.Total_Profit), 'Orders: '+num(r.Total_Orders),
+    'Margin: '+pct(r.Profit_Margin), 'Share: '+pct(r.Sales_Share)];
+
+  card('Sales by State',
+    'Rajasthan leads on paper. It holds that lead in only ' +
+    pct(DATA.significance.find(s=>s.Dimension==='State').Leader_Retention_Rate) +
+    ' of bootstrap resamples, so the order is effectively interchangeable.',
+    false, host => barChart(host, DATA.state, r=>r.State, r=>r.Total_Sales, money, tipFor),
+    salesCols, withKey(DATA.state, 'State'));
+
+  card('Sales by Product Category',
+    'All five categories fall within 5% of one another (permutation p = 0.58).',
+    false, host => barChart(host, DATA.category, r=>r.Product_Category,
+      r=>r.Total_Sales, money, tipFor),
+    salesCols, withKey(DATA.category, 'Product_Category'));
+
+  card('Top 10 Products by Sales',
+    'Revenue spread across the top ten is under 12% - consistent with uniform ' +
+    'random demand rather than genuine bestsellers.',
+    false, host => barChartH(host, DATA.products, r=>r.Product_Name,
+      r=>r.Total_Sales, money, tipFor),
+    salesCols, withKey(DATA.products, 'Product_Name'));
+
+  card('Orders by Payment Mode',
+    'Five modes, each carrying about 20% of orders. An even split, not a preference.',
+    false, host => barChart(host, DATA.payment, r=>r.Payment_Mode,
+      r=>r.Total_Orders, num, tipFor),
+    [['Mode', r=>r.k], ['Orders', r=>num(r.Total_Orders)],
+     ['Sales', r=>money(r.Total_Sales)], ['Share', r=>pct(r.Sales_Share)]],
+    withKey(DATA.payment, 'Payment_Mode'));
+
+  card('Monthly Sales Trend',
+    'Zero-baseline axis. Sales hold flat across 24 months; the wobble stays ' +
+    'inside +/-5% of the mean and fits a flat line (R2 = 0.008).',
+    true, host => lineChart(host, DATA.trend),
+    [['Month', r=>r.Order_Month], ['Sales', r=>money(r.Total_Sales)],
+     ['Profit', r=>money(r.Total_Profit)], ['Orders', r=>num(r.Total_Orders)],
+     ['MoM', r=>(r.MoM_Growth===null||isNaN(r.MoM_Growth))?'n/a':pct(r.MoM_Growth)]],
+    DATA.trend);
+
+  card('Is any ranking real?',
+    'Bootstrap 95% confidence interval on each leader\'s margin over its ' +
+    'nearest rival. Every interval crosses zero - no leader is statistically ' +
+    'distinguishable from its runner-up.',
+    true, host => sigChart(host, DATA.significance),
+    [['Dimension', r=>r.Dimension.replace(/_/g,' ')], ['Leader', r=>r.Leader],
+     ['Runner-up', r=>r.Runner_Up], ['Margin', r=>money(r.Observed_Margin)],
+     ['CI low', r=>money(r.Margin_CI_Low)], ['CI high', r=>money(r.Margin_CI_High)],
+     ['Holds top', r=>pct(r.Leader_Retention_Rate)],
+     ['p', r=>r.Permutation_P_Value.toFixed(3)], ['Verdict', r=>r.Verdict]],
+    DATA.significance);
+}
+
+/* ---------- theme ---------- */
+const btn = document.getElementById('themeBtn');
+btn.onclick = () => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark'
+    || (!document.documentElement.hasAttribute('data-theme')
+        && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+  render();   // re-read the CSS variables for the new mode
+};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>
